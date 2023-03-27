@@ -11,12 +11,27 @@ import java.util.List;
 public class PostService {
 
 
-    /** This method saves a Post to the POSTS table
-     *
+    /**
+     * This method saves a Post to the POSTS table
      * @param post The post to save to the POSTS table
      */
     public static void savePost(Post post) {
-        // TODO: Finish the savePost Method
+        String SQL_savePost;
+        try (Connection connection = DriverManager.getConnection(DatabaseInfo.DB_URL);
+            Statement statement = connection.createStatement() ) {
+
+            SQL_savePost = "INSERT INTO " + DatabaseInfo.Tables.POSTS.label + " VALUES (" +
+                    post.getIdString() + ", " +
+                    post.getTitle() + ", " +
+                    post.getMessage() + ", " +
+                    post.getUser().getIdString() + ", " +
+                    post.getDate().getTime() +
+                    ");";
+            statement.executeUpdate(SQL_savePost);
+
+        } catch (SQLException e) {
+            System.out.println("There was a problem saving the post.");
+        }
     }
 
 
