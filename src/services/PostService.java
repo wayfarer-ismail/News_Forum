@@ -43,7 +43,28 @@ public class PostService {
      */
     public static List<Post> getPostsByUser(User user) {
         // TODO: Finish the getPostsByUser Method
-        return null;
+        List<Post> userStories = new ArrayList<>();
+        String SQL_getPostsByUser = "SELECT * FROM " + DatabaseInfo.Tables.POSTS.label + " " +
+                                    "WHERE USER_ID = \"" + user.getIdString() + " " +
+                                    "ORDER BY POST_DATE DESC" + "\";";
+
+        try (Connection connection = DriverManager.getConnection(DatabaseInfo.DB_URL);
+            Statement statement = connection.createStatement();
+            ResultSet results = statement.executeQuery(SQL_getPostsByUser) ) {
+
+            while (results.next()) {
+                Post post = new Post(results.getString(1), results.getString(2),
+                        results.getString(3), user, results.getLong(5),
+                        getCommentsForPost(results.getString(1)));
+
+                userStories.add(post);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("There was a problem retrieving the posts.");
+        }
+
+        return userStories;
     }
 
 
