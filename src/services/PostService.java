@@ -20,17 +20,19 @@ public class PostService {
         try (Connection connection = DriverManager.getConnection(DatabaseInfo.DB_URL);
             Statement statement = connection.createStatement() ) {
 
-            SQL_savePost = "INSERT INTO " + DatabaseInfo.Tables.POSTS.label + " VALUES (" +
-                    post.getIdString() + ", " +
-                    post.getTitle() + ", " +
-                    post.getMessage() + ", " +
-                    post.getUser().getIdString() + ", " +
+            SQL_savePost = "INSERT INTO " + DatabaseInfo.Tables.POSTS.label + " VALUES (\"" +
+                    post.getIdString() + "\", \"" +
+                    post.getTitle() + "\", \"" +
+                    post.getMessage() + "\", \"" +
+                    post.getUser().getIdString() + "\", \"" +
                     post.getDate().getTime() +
-                    ");";
+                    "\");";
+            System.out.println("SQL_savePost = " + SQL_savePost + "");
             statement.executeUpdate(SQL_savePost);
 
         } catch (SQLException e) {
             System.out.println("There was a problem saving the post.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -42,7 +44,6 @@ public class PostService {
      * @return A List of all the posts from a given user or 'null' if there aren't any
      */
     public static List<Post> getPostsByUser(User user) {
-        // TODO: Finish the getPostsByUser Method
         List<Post> userStories = new ArrayList<>();
         String SQL_getPostsByUser = "SELECT * FROM " + DatabaseInfo.Tables.POSTS.label + " " +
                                     "WHERE USER_ID = \"" + user.getIdString() + " " +
@@ -74,7 +75,23 @@ public class PostService {
      * @return A List of the five most recent Post objects
      */
     public static List<Post> mostRecentNews() {
-        // TODO: Finish the mostRecentNews Method
+        String SQL_recentNews = "SELECT * FROM " + DatabaseInfo.Tables.POSTS.label + " ORDER BY POST_DATE DESC LIMIT 5;";
+        List<Post> recentNews = new ArrayList<>();
+        try (  Connection connection = DriverManager.getConnection(DatabaseInfo.DB_URL);
+               Statement statement = connection.createStatement();
+               ResultSet results = statement.executeQuery(SQL_recentNews) ) {
+
+            while (results.next()) {
+                User user = UserService.getUserByID(results.getString(4));
+                List<Comment> comments = PostService.getCommentsForPost(results.getString(1));
+                Post post = new Post(results.getString(1), results.getString(2), results.getString(3), user, results.getLong(5), comments);
+                post.getComments().forEach(c -> c.setPost(post));
+                recentNews.add(post);
+            }
+            return recentNews;
+        } catch (SQLException e) {
+            System.out.println("There was a problem retrieving the posts.");
+        }
         return null;
     }
 
